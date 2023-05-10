@@ -19,20 +19,8 @@ def get_user_cards(pk):
     user_cards = Card.objects.filter(user_card=pk)
     return user_cards
 
-def get_current_order(pk):
-    curr_order = TestOrder(itemId = pk)
-    return curr_order
-
+@api_view(['GET'])
 def main(request):
-
-    # response = requests.get(f"http://localhost:8000/{orderurl}/{ordernum}")
-    # order = response.json()
-    # price = order['itemPrice']
-    # print("You are paying for this item")
-    # print("ITEM ID:" , order['itemId'])
-    # print("ITEM PRICE:" , order['itemPrice'])
-    
-
     user = False
     while user == False:
         curr = input("please enter your userID \n")
