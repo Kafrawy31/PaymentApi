@@ -20,14 +20,14 @@ def get_current_order(pk):
     curr_order = TestOrder(itemId = pk)
     return curr_order
 
-def main(request):
+def main(orderurl, ordernum):
 
-    order = get_current_order(TestOrder.itemId)
+    response = requests.get(f"http://localhost:8000/{orderurl}/{ordernum}")
+    order = response.json()
+    price = order['itemPrice']
     print("You are paying for this item")
-    print("ITEM ID:" , order.itemId)
-    print("ITEM NAME:" , order.itemName)
-    print("ITEM CODE:" , order.itemCode)
-    print("ITEM PRICE:" , order.itemPrice)
+    print("ITEM ID:" , order['itemId'])
+    print("ITEM PRICE:" , order['itemPrice'])
     
 
     user = False
@@ -40,7 +40,7 @@ def main(request):
             user = True
         else:
             print("User not found\n")
-            new_user_choice = input('Would you like to create a new user? (y/n):')
+            new_user_choice = input('Would you like to create a new user? (y/n): ')
             if new_user_choice == 'y':
                 username = input('Please enter your username: ')
                 new_user = {
@@ -60,15 +60,15 @@ def main(request):
     
     paid = False
     while paid == False:
-        choice = input("would you like to use a registered card, (y/n)? If there are no registered cards you will be prompted to create a new one")
+        choice = input("would you like to use a registered card, (y/n)? If there are no registered cards you will be prompted to create a new one ")
         if choice == "n" or len(card_list) == 0:
             print("enter the details of the new card")
             card_pattern = "(\d\d\d\d)-(\d\d\d\d)-(\d\d\d\d)-(\d\d\d\d)"
-            card_number_input = input('Enter card number (format "xxxx-xxxx-xxxx-xxxx"):')
+            card_number_input = input('Enter card number (format "xxxx-xxxx-xxxx-xxxx"): ')
             while True:
                 if not (re.search(card_pattern, card_number_input)):
                     print('The number you entered is not a valid card number, please enter the number in this format "xxxx-xxxx-xxxx-xxxx" \n')
-                    card_number_input = input('Enter card number (format "xxxx-xxxx-xxxx-xxxx"):')
+                    card_number_input = input('Enter card number (format "xxxx-xxxx-xxxx-xxxx"): ')
                 else:
                     print('\n')
                     break
@@ -94,7 +94,7 @@ def main(request):
                         expiry_date_input = datetime.strptime(expiry_date_input, '%m/%Y').date()
                         break  # Exit the loop if input is valid
                     except ValueError:
-                        print('Invalid date format. Please enter date in format MM/YYYY.')
+                        print('Invalid date format. Please enter date in format MM/YYYY. \n')
                 
 
             
@@ -102,7 +102,7 @@ def main(request):
             while True:
                 name_on_card_input = input('Enter name on card: ')
                 if not(re.search(name_pattern,name_on_card_input)):
-                    print("please enter the name in this format: FirstName LastName")
+                    print("please enter the name in this format: Firstname Lastname")
                 else:
                     card_number_temp = card_number_input
                     break
@@ -111,7 +111,7 @@ def main(request):
             while True:
                 billing_name = input('Please enter your name: ')
                 if not(re.search(name_pattern,billing_name)):
-                    print("please enter the name in this format: FirstName LastName")
+                    print("please enter the name in this format: Firstname Lastname")
                 else:
                     break
                 
@@ -176,12 +176,13 @@ def main(request):
 
             new_transaction = {
                 'card' : card_number_temp,
-                'amount_paid' : 200,
+                'amount_paid' : price,
                 'user_transaction' : curr,
                 'last_4_digits' : card_number_temp[-4:],
                 'status' : 'Paid',
             }
             response = requests.post('http://localhost:8000/PayApi/newtransaction/',data=new_transaction)
+            paid = True
         
         ## to cancel, send patch to update status to cancelled, 
         ## get current user, get their balance, send money back to user.
@@ -200,13 +201,16 @@ def main(request):
             
             new_transaction = {
                 'card' : card['card_number'],
-                'amount_paid' : 200,
+                'amount_paid' : price,
                 'user_transaction' : curr,
                 'last_4_digits' : card['last_4_digits'],
                 'status' : 'Paid',
             }
             response = requests.post('http://localhost:8000/PayApi/newtransaction/',data=new_transaction)
+            paid = True
 
+    cancel = True
+    while cancel == True:
         cancel_transaction_choice = input("Would you like to refund/cancel any transaction made on your account (y/n)?")
         if cancel_transaction_choice == 'y':
             response = requests.get(f"http://localhost:8000/PayApi/usertransactions/{curr}/")
@@ -222,7 +226,8 @@ def main(request):
             }
             
             response = requests.patch(f"http://localhost:8000/PayApi/canceltransaction/{transaction['transaction_id']}/", data=transaction_cancel)
-        
+        else:
+            cancel = False
     
         
    
