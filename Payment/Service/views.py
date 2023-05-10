@@ -20,7 +20,7 @@ def get_current_order(pk):
     curr_order = TestOrder(itemId = pk)
     return curr_order
 
-def main(orderurl, ordernum):
+def main(request,orderurl,ordernum):
 
     response = requests.get(f"http://localhost:8000/{orderurl}/{ordernum}")
     order = response.json()
@@ -32,7 +32,7 @@ def main(orderurl, ordernum):
 
     user = False
     while user == False:
-        curr = input("please enter your userID")
+        curr = input("please enter your userID \n")
         response = requests.get(f"http://localhost:8000/PayApi/getuser/{curr}/")
         if response.status_code == 200:
             print("User Found")
@@ -60,7 +60,7 @@ def main(orderurl, ordernum):
     
     paid = False
     while paid == False:
-        choice = input("would you like to use a registered card, (y/n)? If there are no registered cards you will be prompted to create a new one ")
+        choice = input("would you like to use a registered card, (y/n)? If there are no registered cards you will be prompted to create a new one:  ")
         if choice == "n" or len(card_list) == 0:
             print("enter the details of the new card")
             card_pattern = "(\d\d\d\d)-(\d\d\d\d)-(\d\d\d\d)-(\d\d\d\d)"
@@ -176,7 +176,7 @@ def main(orderurl, ordernum):
 
             new_transaction = {
                 'card' : card_number_temp,
-                'amount_paid' : price,
+                'amount_paid' : 200,
                 'user_transaction' : curr,
                 'last_4_digits' : card_number_temp[-4:],
                 'status' : 'Paid',
@@ -196,12 +196,12 @@ def main(orderurl, ordernum):
             for i in card_list: 
                 print(count, "Card ending with **",i.get('last_4_digits'))
                 count+=1
-            card_choice = int(input("enter the card you want to pay with"))
+            card_choice = int(input("enter the card you want to pay with 1\n"))
             card = card_list[card_choice-1]
             
             new_transaction = {
                 'card' : card['card_number'],
-                'amount_paid' : price,
+                'amount_paid' : 200,
                 'user_transaction' : curr,
                 'last_4_digits' : card['last_4_digits'],
                 'status' : 'Paid',
@@ -217,7 +217,8 @@ def main(orderurl, ordernum):
             transaction_list = response.json()
             transaction_count = 1
             for i in transaction_list:
-                print(transaction_count, "Transaction: ",i.get('transaction_id'), "Amount: ",i.get('amount'))
+                print(transaction_count, "Transaction: ",i.get('transaction_id'), "Amount: ",i.get('amount_paid'), "Status: ", i.get('status'))
+                transaction_count += 1
             transaction_choice = int(input("Which transaction do you wish to refund? "))
             transaction = transaction_list[transaction_choice - 1]
             
@@ -227,7 +228,7 @@ def main(orderurl, ordernum):
             
             response = requests.patch(f"http://localhost:8000/PayApi/canceltransaction/{transaction['transaction_id']}/", data=transaction_cancel)
         else:
-            cancel = False
+            return HttpResponse("Thank you for using this payment system")
     
         
    
