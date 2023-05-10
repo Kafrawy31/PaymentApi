@@ -52,15 +52,7 @@ class Card(models.Model):
 
 
 
-class Transaction(models.Model):
-    transaction_id = models.UUIDField(default = uuid.uuid4, unique=True, editable = False, db_index=True)
-    #merchant_id -- get from merchant
-    date_created = models.DateTimeField(auto_now_add=True)
-    amount_paid = models.DecimalField(max_digits = 9, decimal_places=2) #get from merchant
-    user_transaction = models.ForeignKey(testUser, on_delete=models.CASCADE, blank = True, null = True)
-    last_4_digits = models.CharField(max_length=4, null=True, blank=True)
-    service = models.CharField(default = 'PayPal', editable=False, max_length=6)
-    status = models.CharField(default = 'Outstanding', max_length=16)
+
 
 
 
@@ -80,9 +72,28 @@ class BillingAddress(models.Model):
 
 ## Order class, get from merchant database
 
-class TestOrder(models.Model):
-    itemId = models.IntegerField(primary_key=True,unique=True)
+class Order(models.Model):
+    orderId = models.BigAutoField(primary_key=True,unique=True)
     itemName = models.CharField(max_length=30)
-    itemCode = models.CharField(max_length=26)
-    itemPrice = models.CharField(max_length=22)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    itemDetails = models.CharField(max_length=50)
+    
+class Transaction(models.Model):
+    transaction_id = models.UUIDField(default = uuid.uuid4, unique=True, editable = False, db_index=True)
+    order_id = models.OneToOneField(Order, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(testUser, on_delete=models.CASCADE, blank = True, null = True)
+    merchant_id = models.CharField(max_length=50, null=True, blank =True)
+    delivery_email = models.EmailField(max_length=30, null=True, blank=True)
+    delivery_name = models.CharField(max_length=30, blank= True, null=True)
+    transaction_amount = models.DecimalField(max_digits = 9, decimal_places=2) 
+    service = models.CharField(default = 'PayPal', editable=False, max_length=6)
+    status = models.CharField(default = 'Outstanding', max_length=16)
+    date_created = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def transaction_amount(self):
+        return self.order_id.price
+    
+
+
 

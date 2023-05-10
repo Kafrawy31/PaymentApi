@@ -10,6 +10,9 @@ import requests
 import json
 from rest_framework import status
 from rest_framework.exceptions import NotFound
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+
 # Create your views here.
 
 def get_user_cards(pk):
@@ -20,14 +23,14 @@ def get_current_order(pk):
     curr_order = TestOrder(itemId = pk)
     return curr_order
 
-def main(request,orderurl,ordernum):
+def main(request):
 
-    response = requests.get(f"http://localhost:8000/{orderurl}/{ordernum}")
-    order = response.json()
-    price = order['itemPrice']
-    print("You are paying for this item")
-    print("ITEM ID:" , order['itemId'])
-    print("ITEM PRICE:" , order['itemPrice'])
+    # response = requests.get(f"http://localhost:8000/{orderurl}/{ordernum}")
+    # order = response.json()
+    # price = order['itemPrice']
+    # print("You are paying for this item")
+    # print("ITEM ID:" , order['itemId'])
+    # print("ITEM PRICE:" , order['itemPrice'])
     
 
     user = False
@@ -266,16 +269,32 @@ def newBillingAddress(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
     
 @api_view(['POST'])
-def newTransactionView(request):
-    serializer = TransactionSerializer(data=request.data)  
+def createOrderView(request):
+    serializer = OrderSerializer(data=request.data)  
     if serializer.is_valid(): 
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    
+class newTransaction(APIView):
+    def post(self, request, *args, **kwargs):
+        order_id = kwargs.get('order_id')
+        print(f"order_id = {order_id}")
+        order = get_object_or_404(Order, orderId=order_id)
+        print(f"order = {order}")
+        data = request.data.copy()
+        data['order_id'] = order.orderId
+        data['transaction_amount'] = order.price
+
+        serializer = TransactionSerializer(data=request.data, context={'order_id': order_id})
+        if serializer.is_valid():
+            transaction = serializer.save()
+            return Response(TransactionSerializer(transaction).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
@@ -292,7 +311,7 @@ def userCardsView(request,pk):
 
 @api_view(['GET'])
 def userTransactions(request,pk):
-    uTransactions = Transaction.objects.filter(user_transaction=pk)
+    uTransactions = Transaction.objects.filter(user_id=pk)
     serializer = TransactionSerializer(uTransactions, many = True)
     return Response(serializer.data)
 

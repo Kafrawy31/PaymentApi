@@ -6,6 +6,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = "__all__"
+        
 
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,4 +22,9 @@ class BillingAddressSerializer(serializers.ModelSerializer):
 class testUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = testUser
+        fields = "__all__"
+        
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
         fields = "__all__"
