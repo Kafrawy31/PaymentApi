@@ -177,15 +177,6 @@ def main(request):
             }
             response = requests.post('http://localhost:8000/PayApi/newBA/',data=new_billing_address)            
 
-            new_transaction = {
-                'card' : card_number_temp,
-                'amount_paid' : 200,
-                'user_transaction' : curr,
-                'last_4_digits' : card_number_temp[-4:],
-                'status' : 'Paid',
-            }
-            response = requests.post('http://localhost:8000/PayApi/newtransaction/',data=new_transaction)
-            paid = True
         
         ## to cancel, send patch to update status to cancelled, 
         ## get current user, get their balance, send money back to user.
@@ -201,15 +192,6 @@ def main(request):
                 count+=1
             card_choice = int(input("enter the card you want to pay with 1\n"))
             card = card_list[card_choice-1]
-            
-            new_transaction = {
-                'card' : card['card_number'],
-                'amount_paid' : 200,
-                'user_transaction' : curr,
-                'last_4_digits' : card['last_4_digits'],
-                'status' : 'Paid',
-            }
-            response = requests.post('http://localhost:8000/PayApi/newtransaction/',data=new_transaction)
             paid = True
 
     cancel = True
@@ -345,3 +327,12 @@ def CancelTransaction(request,pk):
     if serializer.is_valid():
         serializer.save()
     return Response(serializer.data)
+
+@api_view(['PATCH'])
+def UpdateTransaction(request,pk):
+    transaction = Transaction.objects.get(transaction_id=pk)
+    serializer = TransactionSerializer(instance = transaction, data=request.data, partial = True)
+    if serializer.is_valid():
+        serializer.save()
+    return Response(serializer.data)
+
