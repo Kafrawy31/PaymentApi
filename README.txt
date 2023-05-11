@@ -68,3 +68,6 @@ To run on pythonanywhere
 superuser credentials:
 username: ammar
 password: alaska123
+
+PythonAnywhere domain:
+sc21ae.pythonanywhere.com
