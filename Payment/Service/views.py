@@ -19,7 +19,6 @@ def get_user_cards(pk):
     user_cards = Card.objects.filter(user_card=pk)
     return user_cards
 
-@api_view(['GET'])
 def main(request):
     user = False
     while user == False:
@@ -38,6 +37,9 @@ def main(request):
                     'username': username,
                 }
                 response = requests.post("http://localhost:8000/PayApi/newuser/", data=new_user)
+                user = response.json()
+                print("Your ID is:", user.get('userId'))
+        
             else:
                 print("\n")
                 
@@ -163,7 +165,8 @@ def main(request):
                 'region' : region_input,
                 'country' : country_input
             }
-            response = requests.post('http://localhost:8000/PayApi/newBA/',data=new_billing_address)            
+            response = requests.post('http://localhost:8000/PayApi/newBA/',data=new_billing_address)
+            paid = True            
 
         
         ## to cancel, send patch to update status to cancelled, 
@@ -178,7 +181,7 @@ def main(request):
             for i in card_list: 
                 print(count, "Card ending with **",i.get('last_4_digits'))
                 count+=1
-            card_choice = int(input("enter the card you want to pay with 1\n"))
+            card_choice = int(input("enter the card you want to pay with \n"))
             card = card_list[card_choice-1]
             paid = True
 
@@ -264,6 +267,7 @@ class newTransaction(APIView):
         serializer = TransactionSerializer(data=request.data, context={'order_id': order_id})
         if serializer.is_valid():
             transaction = serializer.save()
+            response = main(request)
             return Response(TransactionSerializer(transaction).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
