@@ -1,7 +1,7 @@
 
 To run locally
 1.) Launch the command prompt
-2.) git clone https://github.com/Kafrawy31/PaymentApi
+2.) git clone https://github.com/Kafrawy31/sc20ae
 3.) cd ./env
 4.) cd./ scripts
 5.) activate.ps1
